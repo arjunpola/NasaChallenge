@@ -1,5 +1,6 @@
 package com.app.nasachallenge;
 
+import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -13,13 +14,13 @@ import android.view.ViewGroup;
 
 import com.app.nasachallenge.adapters.ResultsAdapter;
 import com.app.nasachallenge.data.SearchItem;
+import com.app.nasachallenge.data.SearchViewModel;
 import com.app.nasachallenge.listeners.OnResultItemClickListener;
 
 import java.util.List;
 
 public class ResultsFragment extends Fragment {
 
-    List<SearchItem> searchResults;
     ResultsAdapter resultsAdapter;
 
     RecyclerView resultsList;
@@ -38,10 +39,9 @@ public class ResultsFragment extends Fragment {
         resultsList = view.findViewById(R.id.results_list);
         resultsList.addItemDecoration(new DividerItemDecoration(resultsList.getContext(), DividerItemDecoration.VERTICAL));
         if (getActivity() != null) {
-            MainActivity mainActivity = (MainActivity) getActivity();
-            searchResults = mainActivity.getSearchResults();
-            resultsAdapter = new ResultsAdapter(searchResults, resultItemClickListener);
-            resultsList.setLayoutManager(new LinearLayoutManager(mainActivity));
+            SearchViewModel searchModel = ViewModelProviders.of(getActivity()).get(SearchViewModel.class);
+            resultsAdapter = new ResultsAdapter(searchModel.getSearchItems(), resultItemClickListener);
+            resultsList.setLayoutManager(new LinearLayoutManager(getActivity()));
             resultsList.setAdapter(resultsAdapter);
         }
     }

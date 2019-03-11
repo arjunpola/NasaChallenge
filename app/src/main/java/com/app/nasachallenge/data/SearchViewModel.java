@@ -1,0 +1,94 @@
+package com.app.nasachallenge.data;
+
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.MutableLiveData;
+import android.arch.lifecycle.ViewModel;
+
+import com.app.nasachallenge.listeners.OnSearchComplete;
+import com.app.nasachallenge.network.NasaService;
+import com.app.nasachallenge.network.SearchResponseConverter;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.reflect.TypeToken;
+
+import java.lang.reflect.Type;
+import java.time.Duration;
+import java.util.List;
+
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.schedulers.Schedulers;
+import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
+import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
+import retrofit2.converter.gson.GsonConverterFactory;
+
+public class SearchViewModel extends ViewModel {
+
+    private MutableLiveData<List<SearchItem>> searchResults = new MutableLiveData<>();
+    private MutableLiveData<Integer> pageNo = new MutableLiveData<>();
+    private String query;
+
+    private NasaService service = getNasaService();
+    private CompositeDisposable compositeDisposable = new CompositeDisposable();
+
+    public LiveData<List<SearchItem>> performSearch(String query, Integer requestedPage, OnSearchComplete onSearchComplete) {
+        if (searchResults.getValue() == null || searchResults.getValue().size() == 0 || (requestedPage < 100 && !requestedPage.equals(pageNo.getValue()))) {
+            compositeDisposable.add(service.searchImages(query)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(
+                            searchItems -> {
+                                if (searchItems.size() <= 0) {
+                                    onSearchComplete.searchCompleted("Empty Search Results");
+                                } else {
+                                    searchResults.postValue(searchItems);
+                                    onSearchComplete.searchCompleted("");
+                                }
+                            }, err -> onSearchComplete.searchCompleted(err.getLocalizedMessage())));
+        } else {
+            onSearchComplete.searchCompleted("");
+        }
+        return searchResults;
+    }
+
+    public LiveData<List<SearchItem>> performSearch(String query, OnSearchComplete onSearchComplete) {
+        pageNo.setValue(1);
+        this.query = query;
+        return performSearch(query, 1, onSearchComplete);
+    }
+
+    public List<SearchItem> getSearchItems() {
+        return searchResults.getValue();
+    }
+
+    private NasaService getNasaService() {
+
+        HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
+        interceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(Duration.ofSeconds(30))
+                .readTimeout(Duration.ofSeconds(30))
+                .writeTimeout(Duration.ofSeconds(30))
+                .addInterceptor(interceptor).build();
+
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        JsonDeserializer<List<SearchItem>> deserializer = new SearchResponseConverter();
+
+        Type searchItemsList = new TypeToken<List<SearchItem>>() {
+        }.getType();
+        gsonBuilder.registerTypeAdapter(searchItemsList, deserializer);
+        Gson customGson = gsonBuilder.create();
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(NasaService.NASA_IMAGE_SEARCH_BASE_URL)
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .addConverterFactory(GsonConverterFactory.create(customGson))
+                .client(client)
+                .build();
+
+        return retrofit.create(NasaService.class);
+    }
+}
