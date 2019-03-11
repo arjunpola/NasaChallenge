@@ -10,6 +10,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.app.nasachallenge.listeners.OnSearchListener;
+
 public class SearchFragment extends DialogFragment {
 
     private EditText searchQueryInput;

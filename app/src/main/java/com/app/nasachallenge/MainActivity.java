@@ -1,17 +1,14 @@
 package com.app.nasachallenge;
 
+import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentActivity;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.util.Log;
+import android.support.v4.app.FragmentManager;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import com.app.nasachallenge.data.SearchItem;
+import com.app.nasachallenge.listeners.OnSearchListener;
 import com.app.nasachallenge.network.NasaService;
 import com.app.nasachallenge.network.SearchResponseConverter;
 import com.google.gson.Gson;
@@ -35,12 +32,17 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class MainActivity extends FragmentActivity implements OnSearchListener {
 
     public static String TAG = "SEARCH ACTIVITY";
+    public static String SEARCH_FRAGMENT_TAG = "SEARCH FRAGMENT";
+    public static String RESULTS_FRAGMENT_TAG = "RESULTS FRAGMENT";
+    public static String DETAIL_FRAGMENT_TAG = "DETAIL FRAGMENT";
 
     SearchFragment searchFragment;
+    ResultsFragment resultsFragment;
     ProgressBar progressBar;
 
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
     private NasaService service;
+    private List<SearchItem> searchResults;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +51,7 @@ public class MainActivity extends FragmentActivity implements OnSearchListener {
 
         progressBar = findViewById(R.id.progress_circular);
         searchFragment = new SearchFragment();
+        resultsFragment = new ResultsFragment();
 
         // Initialize service object
         service = getNasaService();
@@ -57,8 +60,22 @@ public class MainActivity extends FragmentActivity implements OnSearchListener {
             // Add Search fragment
             getSupportFragmentManager()
                     .beginTransaction()
-                    .add(R.id.fragment_container, searchFragment)
+                    .add(R.id.fragment_container, searchFragment, SEARCH_FRAGMENT_TAG)
                     .commit();
+        } else {
+            FragmentManager fm = getSupportFragmentManager();
+            SearchFragment searchFrag = (SearchFragment) fm.findFragmentByTag(SEARCH_FRAGMENT_TAG);
+
+            if (searchFrag == null) {
+                // Resets the view back to search fragment as the results data is not yet retained
+                // TODO: Retain results data in a headless retained fragment or parcel it in savedInstanceState
+                getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.fragment_container, searchFragment, SEARCH_FRAGMENT_TAG)
+                        .commit();
+            } else {
+                searchFragment = searchFrag;
+            }
         }
     }
 
@@ -80,10 +97,11 @@ public class MainActivity extends FragmentActivity implements OnSearchListener {
                     })
                     .subscribe(
                             searchItems -> {
+                                searchResults = searchItems;
                                 if (searchItems.size() <= 0) {
                                     showSnackBar("Empty Search Results");
                                 } else {
-                                    Log.d(TAG, searchItems.get(0).getTitle());
+                                    showResults();
                                 }
                             }, err -> showSnackBar(err.getLocalizedMessage())));
 
@@ -97,13 +115,27 @@ public class MainActivity extends FragmentActivity implements OnSearchListener {
                 .show();
     }
 
+    private void showResults() {
+        if (resultsFragment == null) {
+            resultsFragment = new ResultsFragment();
+        } else {
+            resultsFragment.refresh();
+        }
+
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, resultsFragment, RESULTS_FRAGMENT_TAG)
+                .commit();
+    }
+
     private NasaService getNasaService() {
 
         HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
         interceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
         OkHttpClient client = new OkHttpClient.Builder()
                 .connectTimeout(Duration.ofSeconds(30))
-                .callTimeout(Duration.ofSeconds(30))
+                .readTimeout(Duration.ofSeconds(30))
+                .writeTimeout(Duration.ofSeconds(30))
                 .addInterceptor(interceptor).build();
 
         GsonBuilder gsonBuilder = new GsonBuilder();
@@ -122,5 +154,9 @@ public class MainActivity extends FragmentActivity implements OnSearchListener {
                 .build();
 
         return retrofit.create(NasaService.class);
+    }
+
+    protected List<SearchItem> getSearchResults() {
+        return searchResults;
     }
 }
