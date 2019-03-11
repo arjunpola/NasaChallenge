@@ -14,6 +14,7 @@ import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -28,14 +29,14 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class SearchViewModel extends ViewModel {
 
     private MutableLiveData<List<SearchItem>> searchResults = new MutableLiveData<>();
-    private MutableLiveData<Integer> pageNo = new MutableLiveData<>();
+    private int pageNo = 1;
     private String query;
 
     private NasaService service = getNasaService();
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
 
-    public LiveData<List<SearchItem>> performSearch(String query, Integer requestedPage, OnSearchComplete onSearchComplete) {
-        if (searchResults.getValue() == null || searchResults.getValue().size() == 0 || (requestedPage < 100 && !requestedPage.equals(pageNo.getValue()))) {
+    public LiveData<List<SearchItem>> performSearch(String query, int requestedPage, OnSearchComplete onSearchComplete) {
+        if (searchResults.getValue() == null || searchResults.getValue().size() == 0 || (requestedPage < 100 && requestedPage > 0 && requestedPage != pageNo)) {
             compositeDisposable.add(service.searchImages(query)
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
@@ -44,7 +45,13 @@ public class SearchViewModel extends ViewModel {
                                 if (searchItems.size() <= 0) {
                                     onSearchComplete.searchCompleted("Empty Search Results");
                                 } else {
-                                    searchResults.postValue(searchItems);
+                                    pageNo = requestedPage;
+                                    List<SearchItem> curr = searchResults.getValue();
+                                    if (curr == null) {
+                                        curr = new ArrayList<>();
+                                    }
+                                    curr.addAll(searchItems);
+                                    searchResults.postValue(curr);
                                     onSearchComplete.searchCompleted("");
                                 }
                             }, err -> onSearchComplete.searchCompleted(err.getLocalizedMessage())));
@@ -55,9 +62,17 @@ public class SearchViewModel extends ViewModel {
     }
 
     public LiveData<List<SearchItem>> performSearch(String query, OnSearchComplete onSearchComplete) {
-        pageNo.setValue(1);
         this.query = query;
         return performSearch(query, 1, onSearchComplete);
+    }
+
+    public LiveData<List<SearchItem>> fetchNextPage(OnSearchComplete onSearchComplete) {
+        return performSearch(query, pageNo + 1, onSearchComplete);
+    }
+
+    // TODO: Perform full pagination if time permits
+    public LiveData<List<SearchItem>> fetchPreviousPage(OnSearchComplete onSearchComplete) {
+        return performSearch(query, pageNo - 1, onSearchComplete);
     }
 
     public List<SearchItem> getSearchItems() {
