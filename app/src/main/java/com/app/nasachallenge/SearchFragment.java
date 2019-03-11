@@ -3,14 +3,14 @@ package com.app.nasachallenge;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
+import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 
-public class SearchFragment extends Fragment {
+public class SearchFragment extends DialogFragment {
 
     private EditText searchQueryInput;
     private Button searchButton;
@@ -34,6 +34,17 @@ public class SearchFragment extends Fragment {
             String searchText = searchQueryInput.getText().toString();
             onSearchListener.startSearch(searchText);
         });
+    }
 
+    public void hideSearchButton() {
+        if (searchButton != null) {
+            searchButton.setVisibility(View.GONE);
+        }
+    }
+
+    public void showSearchButton() {
+        if (searchButton != null) {
+            searchButton.setVisibility(View.VISIBLE);
+        }
     }
 }

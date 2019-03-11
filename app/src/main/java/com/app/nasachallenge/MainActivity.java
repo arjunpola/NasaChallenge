@@ -1,5 +1,6 @@
 package com.app.nasachallenge;
 
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -7,6 +8,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.app.nasachallenge.data.SearchItem;
 import com.app.nasachallenge.network.NasaService;
@@ -33,22 +36,25 @@ public class MainActivity extends FragmentActivity implements OnSearchListener {
 
     public static String TAG = "SEARCH ACTIVITY";
 
-    private CompositeDisposable compositeDisposable = new CompositeDisposable();
-    private String previousSearchText = "";
+    SearchFragment searchFragment;
+    ProgressBar progressBar;
 
-    NasaService service;
+    private CompositeDisposable compositeDisposable = new CompositeDisposable();
+    private NasaService service;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        progressBar = findViewById(R.id.progress_circular);
+        searchFragment = new SearchFragment();
+
         // Initialize service object
         service = getNasaService();
 
         if (savedInstanceState == null) {
             // Add Search fragment
-            SearchFragment searchFragment = new SearchFragment();
             getSupportFragmentManager()
                     .beginTransaction()
                     .add(R.id.fragment_container, searchFragment)
@@ -64,20 +70,31 @@ public class MainActivity extends FragmentActivity implements OnSearchListener {
 
     @Override
     public void startSearch(String query) {
-        if (query != null && !query.trim().isEmpty() && !previousSearchText.equals(query)) {
-            previousSearchText = query;
+        if (query != null && !query.trim().isEmpty()) {
             compositeDisposable.add(service.searchImages(query)
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
+                    .doFinally(() -> {
+                        progressBar.setVisibility(View.GONE);
+                        searchFragment.showSearchButton();
+                    })
                     .subscribe(
                             searchItems -> {
                                 if (searchItems.size() <= 0) {
-                                    Log.d(TAG, "Empty Search Results");
+                                    showSnackBar("Empty Search Results");
                                 } else {
                                     Log.d(TAG, searchItems.get(0).getTitle());
                                 }
-                            }, err -> Log.e(TAG, err.getLocalizedMessage())));
+                            }, err -> showSnackBar(err.getLocalizedMessage())));
+
+            searchFragment.hideSearchButton();
+            progressBar.setVisibility(View.VISIBLE);
         }
+    }
+
+    private void showSnackBar(String message) {
+        Snackbar.make(progressBar, message, Snackbar.LENGTH_SHORT)
+                .show();
     }
 
     private NasaService getNasaService() {
