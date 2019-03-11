@@ -7,21 +7,24 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.app.nasachallenge.R;
-import com.app.nasachallenge.SearchResultViewHolder;
 import com.app.nasachallenge.data.SearchItem;
+import com.app.nasachallenge.listeners.OnResultItemClickListener;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ResultsAdapter extends RecyclerView.Adapter<SearchResultViewHolder> {
     private List<SearchItem> searchResults;
+    private OnResultItemClickListener itemClickListener;
 
-    public ResultsAdapter(List<SearchItem> searchResults) {
+    public ResultsAdapter(List<SearchItem> searchResults, OnResultItemClickListener listener) {
         if (searchResults != null) {
             this.searchResults = searchResults;
         } else {
             this.searchResults = new ArrayList<>();
         }
+
+        itemClickListener = listener;
     }
 
     @NonNull
@@ -36,6 +39,7 @@ public class ResultsAdapter extends RecyclerView.Adapter<SearchResultViewHolder>
         SearchItem item = searchResults.get(i);
         searchResultViewHolder.setTitle(item.getTitle());
         searchResultViewHolder.setImage(item.getImageUrl());
+        searchResultViewHolder.getContentView().setOnClickListener(v -> itemClickListener.onResultItemClick(item));
     }
 
     @Override

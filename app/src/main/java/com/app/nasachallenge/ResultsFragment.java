@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 
 import com.app.nasachallenge.adapters.ResultsAdapter;
 import com.app.nasachallenge.data.SearchItem;
+import com.app.nasachallenge.listeners.OnResultItemClickListener;
 
 import java.util.List;
 
@@ -22,6 +23,7 @@ public class ResultsFragment extends Fragment {
     ResultsAdapter resultsAdapter;
 
     RecyclerView resultsList;
+    OnResultItemClickListener resultItemClickListener;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -32,12 +34,13 @@ public class ResultsFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        resultItemClickListener = (OnResultItemClickListener) getActivity();
         resultsList = view.findViewById(R.id.results_list);
         resultsList.addItemDecoration(new DividerItemDecoration(resultsList.getContext(), DividerItemDecoration.VERTICAL));
         if (getActivity() != null) {
             MainActivity mainActivity = (MainActivity) getActivity();
             searchResults = mainActivity.getSearchResults();
-            resultsAdapter = new ResultsAdapter(searchResults);
+            resultsAdapter = new ResultsAdapter(searchResults, resultItemClickListener);
             resultsList.setLayoutManager(new LinearLayoutManager(mainActivity));
             resultsList.setAdapter(resultsAdapter);
         }

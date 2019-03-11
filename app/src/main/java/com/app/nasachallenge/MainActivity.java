@@ -5,9 +5,11 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ProgressBar;
 
 import com.app.nasachallenge.data.SearchItem;
+import com.app.nasachallenge.listeners.OnResultItemClickListener;
 import com.app.nasachallenge.listeners.OnSearchListener;
 import com.app.nasachallenge.network.NasaService;
 import com.app.nasachallenge.network.SearchResponseConverter;
@@ -29,16 +31,17 @@ import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class MainActivity extends FragmentActivity implements OnSearchListener {
+public class MainActivity extends FragmentActivity implements OnSearchListener, OnResultItemClickListener {
 
     public static String TAG = "SEARCH ACTIVITY";
     public static String SEARCH_FRAGMENT_TAG = "SEARCH FRAGMENT";
     public static String RESULTS_FRAGMENT_TAG = "RESULTS FRAGMENT";
     public static String DETAIL_FRAGMENT_TAG = "DETAIL FRAGMENT";
 
-    SearchFragment searchFragment;
-    ResultsFragment resultsFragment;
-    ProgressBar progressBar;
+    private SearchFragment searchFragment;
+    private ResultsFragment resultsFragment;
+    private ProgressBar progressBar;
+    private ViewGroup detailContainer;
 
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
     private NasaService service;
@@ -50,6 +53,8 @@ public class MainActivity extends FragmentActivity implements OnSearchListener {
         setContentView(R.layout.activity_main);
 
         progressBar = findViewById(R.id.progress_circular);
+        detailContainer = findViewById(R.id.detail_container);
+
         searchFragment = new SearchFragment();
         resultsFragment = new ResultsFragment();
 
@@ -57,7 +62,6 @@ public class MainActivity extends FragmentActivity implements OnSearchListener {
         service = getNasaService();
 
         if (savedInstanceState == null) {
-            // Add Search fragment
             getSupportFragmentManager()
                     .beginTransaction()
                     .add(R.id.fragment_container, searchFragment, SEARCH_FRAGMENT_TAG)
@@ -68,7 +72,7 @@ public class MainActivity extends FragmentActivity implements OnSearchListener {
 
             if (searchFrag == null) {
                 // Resets the view back to search fragment as the results data is not yet retained
-                // TODO: Retain results data in a headless retained fragment or parcel it in savedInstanceState
+                // TODO: Use ViewModel or parcel it in savedInstanceState
                 getSupportFragmentManager()
                         .beginTransaction()
                         .replace(R.id.fragment_container, searchFragment, SEARCH_FRAGMENT_TAG)
@@ -107,6 +111,24 @@ public class MainActivity extends FragmentActivity implements OnSearchListener {
 
             searchFragment.hideSearchButton();
             progressBar.setVisibility(View.VISIBLE);
+        }
+    }
+
+    @Override
+    public void onResultItemClick(SearchItem searchItem) {
+        DetailFragment detailFragment = new DetailFragment();
+        detailFragment.setArguments(DetailFragment.getArguments(searchItem));
+
+        FragmentManager fm = getSupportFragmentManager();
+        if (detailContainer != null) {
+            // TODO: Verify UI on large screens + landscape
+            fm.beginTransaction()
+                    .replace(R.id.detail_container, detailFragment, DETAIL_FRAGMENT_TAG)
+                    .commit();
+        } else {
+            fm.beginTransaction()
+                    .replace(R.id.fragment_container, detailFragment, DETAIL_FRAGMENT_TAG)
+                    .commit();
         }
     }
 

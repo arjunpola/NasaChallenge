@@ -7,11 +7,11 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
-public class JsonSearchItem {
+class JsonSearchItem {
 
     @SerializedName("links")
-    public List<JsonLink> links;
+    List<JsonLink> links;
 
     @SerializedName("data")
-    public List<JsonInfo> infoList;
+    List<JsonInfo> infoList;
 }
