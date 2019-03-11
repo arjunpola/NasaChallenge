@@ -46,6 +46,7 @@ public class MainActivity extends FragmentActivity implements OnSearchListener, 
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
     private NasaService service;
     private List<SearchItem> searchResults;
+    private FragmentManager mFragmentManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,23 +58,23 @@ public class MainActivity extends FragmentActivity implements OnSearchListener, 
 
         searchFragment = new SearchFragment();
         resultsFragment = new ResultsFragment();
+        mFragmentManager = getSupportFragmentManager();
 
         // Initialize service object
         service = getNasaService();
 
         if (savedInstanceState == null) {
-            getSupportFragmentManager()
+            mFragmentManager
                     .beginTransaction()
                     .add(R.id.fragment_container, searchFragment, SEARCH_FRAGMENT_TAG)
                     .commit();
         } else {
-            FragmentManager fm = getSupportFragmentManager();
-            SearchFragment searchFrag = (SearchFragment) fm.findFragmentByTag(SEARCH_FRAGMENT_TAG);
+            SearchFragment searchFrag = (SearchFragment) mFragmentManager.findFragmentByTag(SEARCH_FRAGMENT_TAG);
 
             if (searchFrag == null) {
                 // Resets the view back to search fragment as the results data is not yet retained
                 // TODO: Use ViewModel or parcel it in savedInstanceState
-                getSupportFragmentManager()
+                mFragmentManager
                         .beginTransaction()
                         .replace(R.id.fragment_container, searchFragment, SEARCH_FRAGMENT_TAG)
                         .commit();
@@ -87,6 +88,15 @@ public class MainActivity extends FragmentActivity implements OnSearchListener, 
     protected void onDestroy() {
         super.onDestroy();
         compositeDisposable.clear();
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (detailContainer == null && mFragmentManager.findFragmentByTag(DETAIL_FRAGMENT_TAG) != null) {
+            mFragmentManager.popBackStack();
+        } else {
+            super.onBackPressed();
+        }
     }
 
     @Override
@@ -127,6 +137,7 @@ public class MainActivity extends FragmentActivity implements OnSearchListener, 
                     .commit();
         } else {
             fm.beginTransaction()
+                    .addToBackStack(null)
                     .replace(R.id.fragment_container, detailFragment, DETAIL_FRAGMENT_TAG)
                     .commit();
         }
