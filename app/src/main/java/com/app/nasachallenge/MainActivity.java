@@ -1,8 +1,12 @@
 package com.app.nasachallenge;
 
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 
 import com.app.nasachallenge.data.SearchItem;
 import com.app.nasachallenge.network.NasaService;
@@ -25,36 +29,55 @@ import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends FragmentActivity implements OnSearchListener {
 
     public static String TAG = "SEARCH ACTIVITY";
 
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
+    private String previousSearchText = "";
+
+    NasaService service;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        NasaService service = getNasaService();
 
-        compositeDisposable.add(service.searchImages("mars")
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                        searchItems -> {
-                            if (searchItems.size() <= 0) {
-                                Log.d(TAG, "Empty Search Results");
-                            } else {
-                                Log.d(TAG, searchItems.get(0).getTitle());
-                            }
-                        },
-                        Throwable::printStackTrace));
+        // Initialize service object
+        service = getNasaService();
+
+        if (savedInstanceState == null) {
+            // Add Search fragment
+            SearchFragment searchFragment = new SearchFragment();
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .add(R.id.fragment_container, searchFragment)
+                    .commit();
+        }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         compositeDisposable.clear();
+    }
+
+    @Override
+    public void startSearch(String query) {
+        if (query != null && !query.trim().isEmpty() && !previousSearchText.equals(query)) {
+            previousSearchText = query;
+            compositeDisposable.add(service.searchImages(query)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(
+                            searchItems -> {
+                                if (searchItems.size() <= 0) {
+                                    Log.d(TAG, "Empty Search Results");
+                                } else {
+                                    Log.d(TAG, searchItems.get(0).getTitle());
+                                }
+                            }, err -> Log.e(TAG, err.getLocalizedMessage())));
+        }
     }
 
     private NasaService getNasaService() {
