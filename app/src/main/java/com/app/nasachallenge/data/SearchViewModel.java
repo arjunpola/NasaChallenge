@@ -29,14 +29,15 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class SearchViewModel extends ViewModel {
 
     private MutableLiveData<List<SearchItem>> searchResults = new MutableLiveData<>();
-    private int pageNo = 1;
-    private String query;
+    private int mPageNo = 1;
+    private String mQuery = "";
 
     private NasaService service = getNasaService();
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
 
-    public LiveData<List<SearchItem>> performSearch(String query, int requestedPage, OnSearchComplete onSearchComplete) {
-        if (searchResults.getValue() == null || searchResults.getValue().size() == 0 || (requestedPage < 100 && requestedPage > 0 && requestedPage != pageNo)) {
+    private LiveData<List<SearchItem>> performSearch(String query, int requestedPage, OnSearchComplete onSearchComplete) {
+        if (isValidSearch(query, requestedPage)) {
+            refreshDataIfNecessary(query);
             compositeDisposable.add(service.searchImages(query)
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
@@ -45,7 +46,8 @@ public class SearchViewModel extends ViewModel {
                                 if (searchItems.size() <= 0) {
                                     onSearchComplete.searchCompleted("Empty Search Results");
                                 } else {
-                                    pageNo = requestedPage;
+                                    mQuery = query;
+                                    mPageNo = requestedPage;
                                     List<SearchItem> curr = searchResults.getValue();
                                     if (curr == null) {
                                         curr = new ArrayList<>();
@@ -62,21 +64,39 @@ public class SearchViewModel extends ViewModel {
     }
 
     public LiveData<List<SearchItem>> performSearch(String query, OnSearchComplete onSearchComplete) {
-        this.query = query;
         return performSearch(query, 1, onSearchComplete);
     }
 
     public LiveData<List<SearchItem>> fetchNextPage(OnSearchComplete onSearchComplete) {
-        return performSearch(query, pageNo + 1, onSearchComplete);
+        return performSearch(mQuery, mPageNo + 1, onSearchComplete);
     }
 
     // TODO: Perform full pagination if time permits
     public LiveData<List<SearchItem>> fetchPreviousPage(OnSearchComplete onSearchComplete) {
-        return performSearch(query, pageNo - 1, onSearchComplete);
+        return performSearch(mQuery, mPageNo - 1, onSearchComplete);
     }
 
     public List<SearchItem> getSearchItems() {
         return searchResults.getValue();
+    }
+
+    private boolean isValidSearch(String query, int requestedPage) {
+        // invalid search
+        if (requestedPage <= 0 || requestedPage >= 100 || query == null || query.trim().isEmpty()) {
+            return false;
+        }
+        // Results already cached
+        if (mQuery.equals(query) && searchResults.getValue() != null &&
+                searchResults.getValue().size() >= mPageNo * 100 && requestedPage == mPageNo) {
+            return false;
+        }
+        return true;
+    }
+
+    private void refreshDataIfNecessary(String query) {
+        if (!mQuery.equals(query) && searchResults.getValue() != null) {
+            searchResults = new MutableLiveData<>();
+        }
     }
 
     private NasaService getNasaService() {

@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity implements OnSearchListener,
 
     private CompositeDisposable compositeDisposable = new CompositeDisposable();
     private FragmentManager mFragmentManager;
-    SearchViewModel searchModel;
+    private SearchViewModel searchModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
