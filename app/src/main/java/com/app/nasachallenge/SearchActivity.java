@@ -17,7 +17,7 @@ import com.app.nasachallenge.listeners.OnSearchListener;
 
 import io.reactivex.disposables.CompositeDisposable;
 
-public class MainActivity extends AppCompatActivity implements OnSearchListener, OnResultItemClickListener, OnSearchComplete {
+public class SearchActivity extends AppCompatActivity implements OnSearchListener, OnResultItemClickListener, OnSearchComplete {
 
     public static String TAG = "SEARCH ACTIVITY";
     public static String SEARCH_FRAGMENT_TAG = "SEARCH FRAGMENT";
@@ -118,7 +118,7 @@ public class MainActivity extends AppCompatActivity implements OnSearchListener,
     }
 
     private void showToast(String message) {
-        Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
+        Toast.makeText(SearchActivity.this, message, Toast.LENGTH_SHORT).show();
     }
 
     private void showResults() {
