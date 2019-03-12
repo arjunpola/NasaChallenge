@@ -21,25 +21,13 @@
         android:layout_marginStart="@dimen/detail_margin_size"
         android:layout_marginTop="@dimen/detail_margin_size"
         android:layout_marginEnd="@dimen/detail_margin_size"
+        android:gravity="center_horizontal"
         android:textSize="@dimen/detail_text_title_size"
         android:textStyle="bold"
-        app:layout_constraintEnd_toStartOf="@id/thumbnail"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@id/border"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Title" />
-
-    <TextView
-        android:id="@+id/description"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/detail_margin_size"
-        android:layout_marginTop="@dimen/detail_margin_large"
-        android:layout_marginEnd="@dimen/detail_margin_size"
-        android:textSize="@dimen/detail_text_desc_size"
-        app:layout_constraintEnd_toStartOf="@id/thumbnail"
-        app:layout_constraintStart_toStartOf="@id/border"
-        app:layout_constraintTop_toBottomOf="@id/title"
-        tools:text="Lorem Ipsum is simply dummy text of the printing and typesetting industry." />
 
     <ImageView
         android:id="@+id/thumbnail"
@@ -48,7 +36,23 @@
         android:layout_marginTop="@dimen/detail_margin_size"
         android:layout_marginEnd="@dimen/detail_margin_size"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/title"
         tools:src="@mipmap/ic_launcher" />
+
+    <TextView
+        android:id="@+id/description"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/detail_margin_size"
+        android:layout_marginTop="@dimen/detail_margin_size"
+        android:layout_marginEnd="@dimen/detail_margin_size"
+        android:gravity="center_horizontal"
+        android:textAlignment="center"
+        android:textSize="@dimen/detail_text_desc_size"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@id/border"
+        app:layout_constraintTop_toBottomOf="@id/thumbnail"
+        tools:text="Lorem Ipsum is simply dummy text of the printing and typesetting industry." />
 
 </android.support.constraint.ConstraintLayout>

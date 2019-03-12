@@ -2,7 +2,6 @@
 <resources>
     <!-- Detail Layout -->
     <dimen name="detail_margin_size">8dp</dimen>
-    <dimen name="detail_margin_large">16dp</dimen>
 
     <dimen name="detail_text_title_size">18sp</dimen>
     <dimen name="detail_text_desc_size">16sp</dimen>
