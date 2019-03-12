@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Detail Layout -->
+    <dimen name="detail_margin_size">16dp</dimen>
+    <dimen name="detail_margin_large">32dp</dimen>
+
+    <dimen name="detail_text_title_size">20sp</dimen>
+    <dimen name="detail_text_desc_size">18sp</dimen>
+    <dimen name="detail_image_size">280dp</dimen>
+
+    <dimen name="detail_border_size">2dp</dimen>
+</resources>
