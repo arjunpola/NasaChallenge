@@ -15,6 +15,8 @@ import com.app.nasachallenge.listeners.OnResultItemClickListener;
 import com.app.nasachallenge.listeners.OnSearchComplete;
 import com.app.nasachallenge.listeners.OnSearchListener;
 
+import java.util.Optional;
+
 import io.reactivex.disposables.CompositeDisposable;
 
 public class SearchActivity extends AppCompatActivity implements OnSearchListener, OnResultItemClickListener, OnSearchComplete {
@@ -72,10 +74,13 @@ public class SearchActivity extends AppCompatActivity implements OnSearchListene
 
     @Override
     public void onBackPressed() {
-        if (detailContainer == null && mFragmentManager.findFragmentByTag(DETAIL_FRAGMENT_TAG) != null) {
-            mFragmentManager.popBackStack();
-        } else {
-            super.onBackPressed();
+        super.onBackPressed();
+
+        //Hide detailContainer on back pressed for large screens
+        if (detailContainer != null &&
+                mFragmentManager.findFragmentByTag(DETAIL_FRAGMENT_TAG) != null) {
+            detailContainer.setVisibility(View.GONE);
+            mFragmentManager.popBackStackImmediate();
         }
     }
 
@@ -105,10 +110,10 @@ public class SearchActivity extends AppCompatActivity implements OnSearchListene
 
         FragmentManager fm = getSupportFragmentManager();
         if (detailContainer != null) {
-            // TODO: Verify UI on large screens + landscape
             fm.beginTransaction()
                     .replace(R.id.detail_container, detailFragment, DETAIL_FRAGMENT_TAG)
                     .commit();
+            detailContainer.setVisibility(View.VISIBLE);
         } else {
             fm.beginTransaction()
                     .addToBackStack(null)
@@ -133,5 +138,11 @@ public class SearchActivity extends AppCompatActivity implements OnSearchListene
                 .addToBackStack(null)
                 .replace(R.id.fragment_container, resultsFragment, RESULTS_FRAGMENT_TAG)
                 .commit();
+
+        // By default present the first result item in detail layout for large screens
+        Optional<SearchItem> item = searchModel.getSearchFirstItem();
+        if (detailContainer != null && item.isPresent()) {
+            onResultItemClick(item.get());
+        }
     }
 }

@@ -16,6 +16,7 @@ import java.lang.reflect.Type;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
@@ -78,6 +79,15 @@ public class SearchViewModel extends ViewModel {
 
     public List<SearchItem> getSearchItems() {
         return searchResults.getValue();
+    }
+
+    public Optional<SearchItem> getSearchFirstItem() {
+        List<SearchItem> items = searchResults.getValue();
+        if (items != null && items.size() > 0) {
+            return Optional.of(items.get(0));
+        }
+
+        return Optional.empty();
     }
 
     private boolean isValidSearch(String query, int requestedPage) {
