@@ -82,9 +82,9 @@ public class MainActivity extends AppCompatActivity implements OnSearchListener,
     @Override
     public void startSearch(String query) {
         if (query != null && !query.trim().isEmpty()) {
-            searchModel.performSearch(query, this).observe(this, searchItems -> showResults());
             searchFragment.hideSearchButton();
             progressBar.setVisibility(View.VISIBLE);
+            searchModel.performSearch(query, this).observe(this, searchItems -> showResults());
         }
     }
 
