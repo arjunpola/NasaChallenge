@@ -17,11 +17,8 @@ import com.app.nasachallenge.listeners.OnSearchListener;
 
 import java.util.Optional;
 
-import io.reactivex.disposables.CompositeDisposable;
-
 public class SearchActivity extends AppCompatActivity implements OnSearchListener, OnResultItemClickListener, OnSearchComplete {
 
-    public static String TAG = "SEARCH ACTIVITY";
     public static String SEARCH_FRAGMENT_TAG = "SEARCH FRAGMENT";
     public static String RESULTS_FRAGMENT_TAG = "RESULTS FRAGMENT";
     public static String DETAIL_FRAGMENT_TAG = "DETAIL FRAGMENT";
@@ -31,7 +28,6 @@ public class SearchActivity extends AppCompatActivity implements OnSearchListene
     private ProgressBar progressBar;
     private ViewGroup detailContainer;
 
-    private CompositeDisposable compositeDisposable = new CompositeDisposable();
     private FragmentManager mFragmentManager;
     private SearchViewModel searchModel;
 
@@ -69,12 +65,6 @@ public class SearchActivity extends AppCompatActivity implements OnSearchListene
                 detailContainer.setVisibility(View.VISIBLE);
             }
         }
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        compositeDisposable.clear();
     }
 
     @Override
