@@ -63,6 +63,11 @@ public class SearchActivity extends AppCompatActivity implements OnSearchListene
             if (resultsFrag != null) {
                 resultsFragment = resultsFrag;
             }
+
+            DetailFragment detailFrag = (DetailFragment) mFragmentManager.findFragmentByTag(DETAIL_FRAGMENT_TAG);
+            if (detailContainer != null && detailFrag != null) {
+                detailContainer.setVisibility(View.VISIBLE);
+            }
         }
     }
 
@@ -74,13 +79,14 @@ public class SearchActivity extends AppCompatActivity implements OnSearchListene
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
 
         //Hide detailContainer on back pressed for large screens
         if (detailContainer != null &&
                 mFragmentManager.findFragmentByTag(DETAIL_FRAGMENT_TAG) != null) {
             detailContainer.setVisibility(View.GONE);
             mFragmentManager.popBackStackImmediate();
+        } else {
+            super.onBackPressed();
         }
     }
 

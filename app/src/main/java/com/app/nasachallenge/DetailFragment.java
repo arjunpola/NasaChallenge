@@ -36,9 +36,7 @@ public class DetailFragment extends Fragment {
         super.onCreate(savedInstance);
         Bundle bundle = getArguments();
 
-        if (savedInstance != null) {
-            populateDetailInfo(savedInstance);
-        } else if (bundle != null) {
+        if (bundle != null) {
             populateDetailInfo(bundle);
         }
     }
