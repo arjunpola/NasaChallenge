@@ -14,12 +14,14 @@ class SearchResultViewHolder extends RecyclerView.ViewHolder {
     private View contentView;
     private TextView titleView;
     private ImageView thumbnailView;
+    private Picasso picasso;
 
     SearchResultViewHolder(@NonNull View itemView) {
         super(itemView);
         contentView = itemView;
         titleView = itemView.findViewById(R.id.title);
         thumbnailView = itemView.findViewById(R.id.thumbnail);
+        picasso = Picasso.with(itemView.getContext());
     }
 
     void setTitle(String title) {
@@ -27,8 +29,10 @@ class SearchResultViewHolder extends RecyclerView.ViewHolder {
     }
 
     void setImage(String imageUrl) {
-        Picasso.with(thumbnailView.getContext())
-                .load(imageUrl)
+        picasso.load(imageUrl)
+                .noPlaceholder()
+                .fit()
+                .centerCrop()
                 .into(thumbnailView);
     }
 

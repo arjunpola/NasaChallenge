@@ -46,6 +46,10 @@ public class ResultsFragment extends Fragment implements OnSearchComplete {
             resultsList.setLayoutManager(layoutManager);
             resultsList.setAdapter(resultsAdapter);
             resultsList.addOnScrollListener(recyclerViewOnScrollListener);
+
+            //Optimization for Picasso image loads
+            resultsList.setHasFixedSize(true);
+            resultsList.setItemViewCacheSize(20);
         }
     }
 
